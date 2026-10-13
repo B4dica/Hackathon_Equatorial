@@ -118,7 +118,7 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 .game-main { height: calc(100vh - 139px); min-height: 540px; display: grid; grid-template-columns: minmax(0, 1fr) 290px; position: relative; }
 .scene-wrap { position: relative; overflow: hidden; background: #081522; }
-.office-scene { width: 100%; height: 100%; display: block; object-fit: cover; }
+/* .office-scene { width: 100%; height: 100%; display: block; object-fit: cover; } */
 .objective-panel { background: rgba(7,17,29,.96); border-left: 1px solid var(--line); padding: 28px 22px; position: relative; z-index: 2; }
 .panel-kicker { color: var(--cyan); font: 8px var(--mono); letter-spacing: .15em; margin: 0 0 8px; }
 .objective-panel h2 { font-size: 19px; margin: 0; }.objective-panel > p:not(.panel-kicker) { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 10px 0 23px; }
@@ -131,7 +131,9 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .tip-card p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.5; }.tip-card strong { color: var(--amber); display: block; font: 8px var(--mono); margin-bottom: 2px; }
 
 .hotspot { position: absolute; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; color: var(--cyan); z-index: 2; }
-.hotspot.email { left: 59%; top: 37%; }.hotspot.usb { left: 74%; top: 71%; }.hotspot.docs { left: 31%; top: 69%; }
+.hotspot.email { left: 53.3%; top: 22.2%; }
+.hotspot.usb   { left: 87.1%; top: 78.0%; }
+.hotspot.docs  { left: 16.7%; top: 80.6%; }
 .hotspot-core { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #071723; border: 1px solid var(--cyan); box-shadow: 0 0 20px rgba(49,215,231,.35); position: relative; z-index: 2; }
 .pulse-ring { position: absolute; width: 38px; height: 38px; border: 1px solid var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
 .hotspot-label { background: rgba(6,16,28,.9); padding: 7px 10px 7px 22px; margin-left: -12px; border: 1px solid var(--line-bright); color: var(--text); font: 8px var(--mono); letter-spacing: .04em; white-space: nowrap; }
@@ -203,4 +205,51 @@ button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
   .game-main { height: calc(100vh - 126px); }.mission-bar .sector { display: none; }
   .modal-body { grid-template-columns: 1fr; }.object-preview { min-height: 170px; }.preview-icon { width: 90px; height: 90px; }.inspection-modal { max-height: 95vh; }.modal-footer > span { display: none; }
   .hotspot-label { display: none; }
+}
+
+.office-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+
+.office-hotspots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hotspot-path {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0;
+  transition: fill 200ms ease, stroke 200ms ease, filter 200ms ease,
+              stroke-width 200ms ease, opacity 200ms ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.hotspot-path.is-hovered {
+  fill: rgba(34, 211, 238, 0.18);
+  stroke: #22d3ee;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 12px rgba(34, 211, 238, 1));
+}
+
+.hotspot-path.is-complete {
+  fill: rgba(74, 224, 139, 0.15);
+  stroke: #4ae08b;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 10px rgba(74, 224, 139, 0.9));
+}
+
+.hotspot-path.is-inactive {
+  opacity: 0.15;
+  pointer-events: none;
+  cursor: default;
 }

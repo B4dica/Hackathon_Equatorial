@@ -1,29 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import escritorioImg from './assets/Escritorio.jpeg';
+import React from 'react';
 
 type AgentId = "physical" | "technical" | "administrative";
-type HotspotId = "usb" | "email" | "documents";
+type HotspotId = "email" | "usb" | "documents";
+
 type Feedback = "success" | "error" | null;
-
-type IconName =
-  | "badge"
-  | "building"
-  | "check"
-  | "chevron"
-  | "clock"
-  | "close"
-  | "code"
-  | "document"
-  | "key"
-  | "lock"
-  | "mail"
-  | "shield"
-  | "usb"
-  | "warning";
-
-const iconPaths: Record<IconName, React.ReactNode> = {
-  badge: <><circle cx="12" cy="8" r="3" /><path d="M6.5 20v-2.5A5.5 5.5 0 0 1 12 12a5.5 5.5 0 0 1 5.5 5.5V20M8 3h8" /></>,
-  building: <><path d="M4 21V5l8-3 8 3v16M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M9 21v-5h6v5" /></>,
+type IconName = "badge" | "building" | "check" | "chevron" | "clock" | "close" | "code" | "document" | "key" | "lock" | "mail" | "shield" | "usb" | "warning";
+const iconPaths: Record<string, React.ReactNode> = {
+  badge: <React.Fragment><circle cx="12" cy="8" r="3" /><path d="M6.5 20v-2.5A5.5 5.5 0 0 1 12 12a5.5 5.5 0 0 1 5.5 5.5V20M8 3h8" /></React.Fragment>,
+  building: <React.Fragment><path d="M4 21V5l8-3 8 3v16M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M9 21v-5h6v5" /></React.Fragment>,
   check: <path d="m5 12 4 4L19 6" />,
   chevron: <path d="m9 18 6-6-6-6" />,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
@@ -136,6 +122,88 @@ const inspections: Record<HotspotId, {
   },
 };
 
+function InspectionModal({ id, completed, onClose, onSolve, onWrong }: { id: HotspotId; completed: boolean; onClose: () => void; onSolve: () => void; onWrong: () => void }) {
+  const data = inspections[id];
+  const [choice, setChoice] = useState<number | null>(null);
+ 
+  const [feedback, setFeedback] = useState<Feedback>(completed ? "success" : null);
+
+  const submit = () => {
+    if (choice === null) return;
+    if (choice === data.answer) {
+      setFeedback("success");
+      onSolve();
+    } else {
+      setFeedback("error");
+      onWrong();
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="inspection-modal" role="dialog" aria-modal="true" aria-label={`Inspeção: ${data.label}`}>
+        <div className="modal-accent" />
+        <header className="modal-header">
+          <div><p>{data.eyebrow}</p><h2>{data.label}</h2></div>
+          <button className="icon-button" onClick={onClose} type="button" aria-label="Fechar inspeção"><Icon name="close" /></button>
+        </header>
+        <div className="modal-body">
+          <div className={`object-preview ${id}`}>
+            <span className="scan-line" />
+            <span className="preview-grid" />
+            <div className="preview-icon"><Icon name={data.icon} size={64} /></div>
+            <div className="object-id">OBJETO // {id.toUpperCase()}-SCAN</div>
+          </div>
+          <div className="question-panel">
+            <div className="scenario-label"><span>01</span> CENÁRIO IDENTIFICADO</div>
+            <div className="question">{data.question}</div>
+            <div className="options">
+              {data.options.map((opt, idx) => (
+                <label key={idx} className={choice === idx ? "selected" : ""}>
+                  <input
+                    type="radio"
+                    name="option"
+                    value={idx}
+                    checked={choice === idx}
+                    onChange={() => setChoice(idx)}
+                    disabled={completed}
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="modal-footer">
+            {completed ? (
+              <button onClick={onClose} type="button">Fechar</button>
+            ) : (
+              <>
+                <button onClick={submit} disabled={choice === null} type="button">Responder</button>
+                <button onClick={onClose} type="button">Desistir</button>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// -------------------------------------------------
+// 2️⃣ Paths exportados do Figma (substitua pelos valores reais se necessário)
+// -------------------------------------------------
+const HOTSPOTS: Record<HotspotId, { d: string }> = {
+  email: {
+    d: 'M1150.06 37.9982L554.688 31.0393C548.754 30.97 544.065 36.0544 544.614 41.9638L573.239 350.056C573.71 355.126 577.915 359.032 583.006 359.129L1112.83 369.213C1117.97 369.311 1122.35 365.497 1122.95 360.393L1159.88 49.1757C1160.58 43.274 1156 38.0677 1150.06 37.9982Z',
+  },
+  usb: {
+    d: 'M1338.96 636.174L1334.49 638.928C1332.22 640.323 1330.6 642.564 1330 645.154L1328.43 651.798C1327.98 653.711 1328.11 655.714 1328.79 657.558L1335.52 675.762L1347.72 711.304L1357.39 738.125C1357.81 739.302 1358.45 740.388 1359.27 741.328L1370.11 753.688C1371.02 754.723 1372.13 755.56 1373.38 756.146L1388.94 763.46L1398.33 766.716C1398.94 766.928 1399.57 767.08 1400.21 767.171L1414.18 769.138H1431.39C1431.97 769.138 1432.55 769.088 1433.12 768.988L1442.13 767.406C1443.53 767.162 1444.86 766.623 1446.03 765.826L1452.99 761.093C1454.16 760.296 1455.15 759.26 1455.89 758.053L1458.76 753.377C1459.86 751.592 1460.36 749.507 1460.21 747.417L1459.18 733.386L1457.01 718.999C1456.92 718.405 1456.78 717.82 1456.58 717.251L1447.5 690.759C1447.33 690.276 1447.13 689.806 1446.89 689.354L1431.33 659.712C1430.72 658.549 1429.89 657.523 1428.88 656.685C1425.1 653.56 1415.36 645.553 1411.86 643.165C1407.87 640.437 1378.53 635.633 1373.41 634.811C1372.9 634.729 1372.39 634.69 1371.87 634.69H1344.2C1342.35 634.69 1340.54 635.204 1338.96 636.174Z',
+  },
+  documents: {
+    d: 'M339.394 555.177L242.417 552.356C241.122 552.319 239.833 552.533 238.62 552.987L233.055 555.071C231.215 555.76 229.619 556.975 228.466 558.565L170.345 638.698L82.6011 752.109L3.95591 852.256C2.57259 854.017 1.82068 856.192 1.82068 858.432V880.972C1.82068 886.263 5.94145 890.638 11.2225 890.954L54.9448 893.574L177.11 898.548H397.211C401.175 898.548 404.765 896.207 406.363 892.58L441.338 813.192L493.069 689.832L510.976 648.646L521.894 621.832C522.175 621.14 522.379 620.419 522.5 619.682L530.159 573.042C531.158 566.954 526.46 561.422 520.291 561.422H464.064L339.394 555.177Z',
+  },
+};
+
 function Brand() {
   return (
     <div className="brand">
@@ -196,224 +264,120 @@ function CharacterSelection({ onSelect }: { onSelect: (id: AgentId) => void }) {
   );
 }
 
-function OfficeScene({ inspected, assigned, onInspect }: { inspected: Set<HotspotId>; assigned: HotspotId; onInspect: (id: HotspotId) => void }) {
+function OfficeScene({
+  inspected,
+  assigned,
+  onInspect,
+}: {
+  inspected: Set<HotspotId>;
+  assigned: HotspotId;
+  onInspect: (id: HotspotId) => void;
+}) {
+  const [hovered, setHovered] = useState<HotspotId | null>(null);
+ 
+
   return (
     <div className="scene-wrap">
-      <svg className="office-scene" viewBox="0 0 1200 680" role="img" aria-label="Escritório isométrico com pontos de inspeção">
-        <defs>
-          <linearGradient id="roomBg" x1="100" y1="0" x2="1100" y2="680">
-            <stop stopColor="#10273a" /><stop offset="1" stopColor="#07111e" />
-          </linearGradient>
-          <linearGradient id="deskWood" x1="250" y1="260" x2="970" y2="560">
-            <stop stopColor="#c78a54" /><stop offset=".55" stopColor="#9c6039" /><stop offset="1" stopColor="#704029" />
-          </linearGradient>
-          <linearGradient id="screenGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop stopColor="#123d58" /><stop offset="1" stopColor="#071d30" />
-          </linearGradient>
-          <filter id="sceneShadow" x="-30%" y="-30%" width="160%" height="180%">
-            <feDropShadow dx="0" dy="18" stdDeviation="15" floodColor="#000814" floodOpacity=".5" />
-          </filter>
-          <pattern id="floorGrid" width="55" height="31.75" patternUnits="userSpaceOnUse" patternTransform="skewY(-30)">
-            <path d="M55 0H0V31.75" fill="none" stroke="#1d5266" strokeOpacity=".24" />
-          </pattern>
-        </defs>
-        <rect width="1200" height="680" fill="url(#roomBg)" />
-        <path d="M0 480 600 132l600 348v200H0Z" fill="#091b2a" />
-        <path d="M0 480 600 132l600 348v200H0Z" fill="url(#floorGrid)" />
-        <path d="M0 0h1200v88L600 435 0 88Z" fill="#0d2233" opacity=".45" />
-        <path d="m70 139 247-93 140 81-247 94Z" fill="#14354a" />
-        <path d="m210 221 247-94v139l-247 95Z" fill="#0a1e2d" />
-        <path d="m239 229 179-68v63l-179 69Z" fill="#22cce1" opacity=".1" />
-        <path d="m963 72 172 99v175l-172-100Z" fill="#0a1c2a" stroke="#1d4b60" />
-        <path d="m987 127 123 71m-123-24 123 71m-123-24 82 48" stroke="#23637a" strokeWidth="7" opacity=".52" />
+      {/* 1️⃣ Foto de fundo */}
+      <img
+        src={escritorioImg}
+        alt="Escritório corporativo com estação de trabalho"
+        className="office-photo"
+        draggable={false}
+      />
 
-        <g filter="url(#sceneShadow)">
-          <path d="m164 340 616-141 302 175-617 157Z" fill="url(#deskWood)" stroke="#e1ad75" strokeWidth="3" />
-          <path d="m465 531 617-157v35L465 570Z" fill="#5c3225" />
-          <path d="m164 340 301 191v39L164 378Z" fill="#75452e" />
-          <path d="m202 394 48 30-10 190-43 25Zm780 30 48-12-2 161-42 25Z" fill="#132d3c" />
+      {/* 2️⃣ Sobreposição SVG com os contornos (pointer‑events:none para não bloquear os botões) */}
+      <svg
+        className="office-hotspots"
+        viewBox="0 0 1600 900"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        {(Object.keys(HOTSPOTS) as HotspotId[]).map((id) => {
+          const isHovered = hovered === id;
+          const isInspected = inspected.has(id);
+          const isActive = assigned === id;
 
-          {/* lamp */}
-          <path d="m926 287 61-14 42 25-62 15Z" fill="#243d4b" />
-          <path d="m967 283-2-113 13-3 3 114Z" fill="#334f5d" />
-          <path d="m973 169-63-42 9-12 64 44Z" fill="#365665" />
-          <path d="m875 95 75 8 18 34-64 7-39-25Z" fill="#1b3545" stroke="#5c7f8f" strokeWidth="2" />
-          <path d="m884 105 58 7 10 18-47 5-31-19Z" fill="#d7fbff" opacity=".85" />
-
-          {/* monitor */}
-          <path d="m406 132 403 73-4 202-401-77Z" fill="#132d3e" stroke="#5a7989" strokeWidth="4" />
-          <path d="m426 154 362 66-3 164-360-70Z" fill="url(#screenGlow)" />
-          <path d="m426 154 362 66v25l-362-66Z" fill="#082539" />
-          <circle cx="765" cy="229" r="6" fill="#43d7e9" />
-          <path d="m445 193 66 12-2 91-64-13Z" fill="#0b2b42" />
-          <path d="m458 212 38 7m-38 17 43 8m-43 16 30 6" stroke="#719cab" strokeWidth="6" />
-          <path d="m530 209 235 43-2 27-233-44Z" fill="#13445e" />
-          <path d="m546 251 100 19-2 59-99-19Zm113 21 104 19-1 59-103-20Z" fill="#0d3048" stroke="#1e6078" />
-          <path d="m562 280 55 10m-55 12 38 7m114-9 29 5v22l-29-6Z" stroke="#42d6e7" strokeWidth="6" />
-          <path d="m594 371 58 11 1 53-57-4Z" fill="#263f4d" />
-          <path d="m543 427 146-8 47 25-151 12Z" fill="#1b3342" stroke="#607c8a" strokeWidth="2" />
-          {/* sticky */}
-          <path d="m720 193 58 11-2 51-57-11Z" fill="#f2d267" />
-          <path d="m731 219 32 6m-32 7 23 5" stroke="#866a2b" strokeWidth="3" />
-
-          {/* keyboard */}
-          <path d="m496 421 286-36 105 62-291 43Z" fill="#172d3b" stroke="#617d89" strokeWidth="3" />
-          <path d="m524 430 238-29 85 49-242 34Z" fill="#091b27" />
-          {[0, 1, 2, 3].map((row) => (
-            <g key={row}>
-              {[0, 1, 2, 3, 4, 5, 6, 7].map((key) => (
-                <path key={key} d={`m${540 + key * 29 + row * 9} ${432 + row * 11} 20-2 9 5-21 3Z`} fill="#486572" />
-              ))}
-            </g>
-          ))}
-
-          {/* mouse + USB */}
-          <path d="M884 415c25-7 55 7 59 26 4 18-15 33-38 34-23 0-43-13-44-28-2-14 7-26 23-32Z" fill="#193646" stroke="#668b9a" strokeWidth="2" />
-          <path d="m907 417 1 23" stroke="#3de1ee" strokeWidth="3" />
-          <path d="m837 475 58 17-13 22-60-17Z" fill="#0588a5" stroke="#55e1ec" strokeWidth="2" />
-          <path d="m812 471 26 7-11 18-25-7Z" fill="#c6d7d9" />
-
-          {/* paper */}
-          <path d="m264 391 195-47 123 72-198 50Z" fill="#e8efee" stroke="#fff" strokeWidth="2" />
-          <path d="m289 397 92-22m-77 37 125-30m-108 44 96-24" stroke="#8da2a9" strokeWidth="5" />
-          <path d="m411 407 91 53-60 15-89-53Z" fill="none" stroke="#c23e49" strokeWidth="4" />
-          <text x="398" y="404" fill="#b8313d" fontFamily="Arial" fontSize="15" fontWeight="700" transform="rotate(30 398 404)">CONFIDENCIAL</text>
-
-          {/* mug */}
-          <path d="m259 315 74 7-7 72c-2 15-65 10-66-7Z" fill="#e7f1ef" />
-          <ellipse cx="296" cy="319" rx="37" ry="12" fill="#533626" />
-          <path d="M330 337c45-7 46 44-3 39" fill="none" stroke="#e7f1ef" strokeWidth="12" />
-          <path d="m273 342 44 4-3 12-41-4Z" fill="#16bad0" />
-
-          {/* badge */}
-          <path d="m704 506 109-28 70 42-109 29Z" fill="#e8f1ef" />
-          <path d="m704 506 109-28 20 12-110 28Z" fill="#16bdd2" />
-          <circle cx="749" cy="522" r="14" fill="#7f9fa9" />
-          <path d="m777 510 59-15m-49 25 58-15m-49 24 33-9" stroke="#76919a" strokeWidth="5" />
-        </g>
+          return (
+            <path
+              key={id}
+              d={HOTSPOTS[id].d}
+              className={[
+                'hotspot-path',
+                isHovered && isActive ? 'is-hovered' : '',
+                isInspected ? 'is-complete' : '',
+                !isActive ? 'is-inactive' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onMouseEnter={() => isActive && setHovered(id)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => isActive && onInspect(id)}
+            />
+          );
+        })}
       </svg>
 
-      <button className={`hotspot email ${assigned !== "email" ? "inactive" : ""} ${inspected.has("email") ? "complete" : ""}`} disabled={assigned !== "email"} onClick={() => onInspect("email")} type="button">
-        <span className="pulse-ring" /><span className="hotspot-core"><Icon name={inspected.has("email") ? "check" : "mail"} size={17} /></span><span className="hotspot-label">E-mail suspeito</span>
+      {/* 3️⃣ Botões HTML – exatamente como antes (mantendo pulse‑ring, core e label) */}
+      <button
+        className={`hotspot email ${assigned !== "email" ? "inactive" : ""} ${inspected.has("email") ? "complete" : ""}`}
+        disabled={assigned !== "email"}
+        onClick={() => onInspect("email")}
+        type="button"
+      >
+        <span className="pulse-ring" />
+        <span className="hotspot-core">
+          <Icon name={inspected.has("email") ? "check" : "mail"} size={17} />
+        </span>
+        <span className="hotspot-label">E‑mail suspeito</span>
       </button>
-      <button className={`hotspot usb ${assigned !== "usb" ? "inactive" : ""} ${inspected.has("usb") ? "complete" : ""}`} disabled={assigned !== "usb"} onClick={() => onInspect("usb")} type="button">
-        <span className="pulse-ring" /><span className="hotspot-core"><Icon name={inspected.has("usb") ? "check" : "usb"} size={17} /></span><span className="hotspot-label">USB desconhecido</span>
+
+      <button
+        className={`hotspot usb ${assigned !== "usb" ? "inactive" : ""} ${inspected.has("usb") ? "complete" : ""}`}
+        disabled={assigned !== "usb"}
+        onClick={() => onInspect("usb")}
+        type="button"
+      >
+        <span className="pulse-ring" />
+        <span className="hotspot-core">
+          <Icon name={inspected.has("usb") ? "check" : "usb"} size={17} />
+        </span>
+        <span className="hotspot-label">USB desconhecido</span>
       </button>
-      <button className={`hotspot docs ${assigned !== "documents" ? "inactive" : ""} ${inspected.has("documents") ? "complete" : ""}`} disabled={assigned !== "documents"} onClick={() => onInspect("documents")} type="button">
-        <span className="pulse-ring" /><span className="hotspot-core"><Icon name={inspected.has("documents") ? "check" : "document"} size={17} /></span><span className="hotspot-label">Contrato exposto</span>
+
+      <button
+        className={`hotspot docs ${assigned !== "documents" ? "inactive" : ""} ${inspected.has("documents") ? "complete" : ""}`}
+        disabled={assigned !== "documents"}
+        onClick={() => onInspect("documents")}
+        type="button"
+      >
+        <span className="pulse-ring" />
+        <span className="hotspot-core">
+          <Icon name={inspected.has("documents") ? "check" : "document"} size={17} />
+        </span>
+        <span className="hotspot-label">Contrato exposto</span>
       </button>
-    </div>
-  );
-}
-
-function InspectionModal({ id, completed, onClose, onSolve, onWrong }: { id: HotspotId; completed: boolean; onClose: () => void; onSolve: () => void; onWrong: () => void }) {
-  const data = inspections[id];
-  const [choice, setChoice] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<Feedback>(completed ? "success" : null);
-
-  const submit = () => {
-    if (choice === null) return;
-    if (choice === data.answer) {
-      setFeedback("success");
-      onSolve();
-    } else {
-      setFeedback("error");
-      onWrong();
-    }
-  };
-
-  return (
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="inspection-modal" role="dialog" aria-modal="true" aria-label={`Inspeção: ${data.label}`}>
-        <div className="modal-accent" />
-        <header className="modal-header">
-          <div><p>{data.eyebrow}</p><h2>{data.label}</h2></div>
-          <button className="icon-button" onClick={onClose} type="button" aria-label="Fechar inspeção"><Icon name="close" /></button>
-        </header>
-        <div className="modal-body">
-          <div className={`object-preview ${id}`}>
-            <span className="scan-line" />
-            <span className="preview-grid" />
-            <div className="preview-icon"><Icon name={data.icon} size={64} /></div>
-            <div className="object-id">OBJETO // {id.toUpperCase()}-SCAN</div>
-          </div>
-          <div className="question-panel">
-            <div className="scenario-label"><span>01</span> CENÁRIO IDENTIFICADO</div>
-            <p className="scenario-copy">{data.description}</p>
-            <h3>{data.question}</h3>
-            <div className="answer-list">
-              {data.options.map((option, index) => (
-                <button
-                  className={`answer ${choice === index ? "chosen" : ""} ${feedback && index === data.answer ? "correct" : ""}`}
-                  disabled={feedback === "success"}
-                  key={option}
-                  onClick={() => { setChoice(index); setFeedback(null); }}
-                  type="button"
-                >
-                  <span>{String.fromCharCode(65 + index)}</span>{option}<i />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {feedback && (
-          <div className={`feedback-card ${feedback}`}>
-            <div className="feedback-icon"><Icon name={feedback === "success" ? "check" : "warning"} size={26} /></div>
-            <div>
-              <strong>{feedback === "success" ? "SHIELD RESTORED" : "HACKER ALERT"}</strong>
-              <p>{feedback === "success" ? data.success : data.error}</p>
-            </div>
-          </div>
-        )}
-        <footer className="modal-footer">
-          <span><Icon name="shield" size={15} /> PROTOCOLO EQUATORIAL CS-24</span>
-          {feedback === "success" ? (
-            <button className="primary-button success" onClick={onClose} type="button">Continuar missão <Icon name="chevron" size={17} /></button>
-          ) : (
-            <button className="primary-button" disabled={choice === null} onClick={submit} type="button">Validar resposta <Icon name="check" size={17} /></button>
-          )}
-        </footer>
-      </section>
     </div>
   );
 }
 
 function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void }) {
-  const agent = agents.find((item) => item.id === agentId)!;
-  const [seconds, setSeconds] = useState(180);
-  const [shield, setShield] = useState(70);
-  const [inspected, setInspected] = useState<Set<HotspotId>>(new Set());
   const [active, setActive] = useState<HotspotId | null>(null);
-  const [hackerAlert, setHackerAlert] = useState(false);
-  const [missionComplete, setMissionComplete] = useState(false);
-  useEffect(() => {
-    setMissionComplete(inspected.size >= 1);
-  }, [inspected]);
+  const [inspected, setInspected] = useState<Set<HotspotId>>(new Set());
+  const [shield, setShield] = useState<number>(100);
+  const [time, setTime] = useState<number>(180);
+  const [missionComplete, setMissionComplete] = useState<boolean>(false);
+  const [hackerAlert, setHackerAlert] = useState<boolean>(false);
+  const [objective, setObjective] = useState<string>('');
+  const [progress, setProgress] = useState<number>(0);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setSeconds((value) => {
-        if (missionComplete) return value; // pause when mission completed
-        return Math.max(0, value - 1);
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [missionComplete]);
-
-  const time = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-  const progress = inspected.size;
-  const assigned: HotspotId = {
-    physical: "usb",
-    technical: "email",
-    administrative: "documents",
-  }[agentId] as HotspotId;
-  // missionComplete state managed via useEffect
-  const objective = useMemo(() => ({
-    physical: "Localize dispositivos e credenciais expostos",
-    technical: "Analise indicadores de comprometimento",
-    administrative: "Proteja dados e valide a conformidade",
-  }[agentId]), [agentId]);
+  const agentToHotspot: Record<AgentId, HotspotId> = {
+    physical: 'usb',
+    technical: 'email',
+    administrative: 'documents',
+  };
+  const agentObj = agents.find(a => a.id === agentId)!;
+  const assigned = agentObj ? agentToHotspot[agentId] : null;
 
   const solve = () => {
     if (!active || inspected.has(active)) return;
@@ -442,55 +406,48 @@ function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void 
           </div>
           <div className="key-widget">
             <div><span>CHAVE DE INSPEÇÃO</span><strong>{progress}<small>/ 1</small></strong></div>
-            <div className="key-progress">
-              <i className={progress ? "filled" : ""}><Icon name={progress ? "check" : "key"} size={14} /></i>
-            </div>
+            <div className="key-progress"><i className={progress ? "filled" : ""}><Icon name={progress ? "check" : "key"} size={14} /></i></div>
           </div>
         </div>
         <button className="profile-control" onClick={onExit} type="button">
-          <span className={`mini-avatar ${agent.color}`}><Icon name={agent.icon} size={18} /></span>
-          <span><small>PERFIL ATIVO</small><strong>{agent.title}</strong></span>
+          <span className={`mini-avatar ${agentObj?.color ?? ''}`}><Icon name={agentObj?.icon ?? "shield"} size={18} /></span>
+           <span><strong>PERFIL ATIVO</strong>{agentObj?.title ?? ''}</span>
           <Icon name="chevron" size={16} />
         </button>
       </header>
-
       <div className="mission-bar">
         <span className="live-dot" /> MISSÃO EM CURSO
         <i />
         <strong>{objective}</strong>
         <span className="sector">SETOR 04 · ESTAÇÃO CORPORATIVA</span>
       </div>
-
       <main className="game-main">
-        <OfficeScene assigned={assigned} inspected={inspected} onInspect={setActive} />
+        <OfficeScene assigned={assigned!} inspected={inspected} onInspect={setActive} />
         <aside className="objective-panel">
           <p className="panel-kicker">OBJETIVOS DA MISSÃO</p>
           <h2>Varredura de segurança</h2>
           <p>Investigue a evidência indicada para o seu perfil e neutralize a vulnerabilidade.</p>
           <div className="objective-list">
-            <button className={inspected.has(assigned) ? "done" : ""} onClick={() => setActive(assigned)} type="button">
-              <span>{inspected.has(assigned) ? <Icon name="check" size={16} /> : "01"}</span>
-              <span><strong>{inspections[assigned].label}</strong><small>{inspected.has(assigned) ? "RISCO NEUTRALIZADO" : "AGUARDANDO INSPEÇÃO"}</small></span>
+            <button className={inspected.has(assigned!) ? "done" : ""} onClick={() => setActive(assigned!)} type="button">
+              <span>{inspected.has(assigned!) ? <Icon name="check" size={16} /> : "01"}</span>
+              <span><strong>{inspections[assigned!].label}</strong><small>{inspected.has(assigned!) ? "RISCO NEUTRALIZADO" : "AGUARDANDO INSPEÇÃO"}</small></span>
             </button>
           </div>
           <div className="tip-card"><Icon name="key" size={18} /><p><strong>DICA DE CAMPO</strong> Clique nos marcadores pulsantes para analisar cada evidência.</p></div>
         </aside>
       </main>
-
       <footer className="game-footer">
         <span><i /> CANAL SEGURO · AES-256</span>
         <span>EQUATORIAL CYBERSHIELD / SIMULAÇÃO v2.4</span>
         <span>SISTEMA OPERACIONAL <i /></span>
       </footer>
-
       {missionComplete && !active && (
         <div className="completion-banner">
           <span><Icon name="shield" size={28} /></span>
-          <div><small>MISSÃO CONCLUÍDA</small><strong>Escudo corporativo restaurado</strong></div>
+          <div><strong>MISSÃO CONCLUÍDA</strong><small>Escudo corporativo restaurado</small></div>
           <button onClick={onExit} type="button">Selecionar novo agente <Icon name="chevron" size={16} /></button>
         </div>
       )}
-
       {hackerAlert && (
         <div className="hacker-flash" role="alert">
           <div className="hacker-flash-card">
@@ -501,7 +458,6 @@ function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void 
           </div>
         </div>
       )}
-
       {active && (
         <InspectionModal
           completed={inspected.has(active)}
@@ -513,6 +469,7 @@ function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void 
       )}
     </div>
   );
+
 }
 
 export default function App() {
