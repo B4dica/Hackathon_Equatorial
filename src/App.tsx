@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import escritorioImg from './assets/Escritorio.jpeg';
 
 type AgentId = "physical" | "technical" | "administrative";
 type HotspotId = "usb" | "email" | "documents";
@@ -385,11 +386,20 @@ function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void 
   const [inspected, setInspected] = useState<Set<HotspotId>>(new Set());
   const [active, setActive] = useState<HotspotId | null>(null);
   const [hackerAlert, setHackerAlert] = useState(false);
+  const [missionComplete, setMissionComplete] = useState(false);
+  useEffect(() => {
+    setMissionComplete(inspected.size >= 1);
+  }, [inspected]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1000);
+    const timer = window.setInterval(() => {
+      setSeconds((value) => {
+        if (missionComplete) return value; // pause when mission completed
+        return Math.max(0, value - 1);
+      });
+    }, 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [missionComplete]);
 
   const time = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
   const progress = inspected.size;
@@ -398,7 +408,7 @@ function EscapeRoom({ agentId, onExit }: { agentId: AgentId; onExit: () => void 
     technical: "email",
     administrative: "documents",
   }[agentId] as HotspotId;
-  const missionComplete = progress === 1;
+  // missionComplete state managed via useEffect
   const objective = useMemo(() => ({
     physical: "Localize dispositivos e credenciais expostos",
     technical: "Analise indicadores de comprometimento",

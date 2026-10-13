@@ -1,0 +1,10 @@
+{
+  "description": "Explore a detailed 3D isometric visualization of a modern corporate desk setup to enhance UI design projects and corporate presentations.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
